@@ -14,7 +14,7 @@ type UserService struct {
 func (s *UserService) SetActive(ctx context.Context, id string, active bool) (*models.User, error) {
 	user, err := s.repo.GetUserById(ctx, id)
 	if err != nil {
-		return nil, service.ErrUserNotFound
+		return nil, service.ErrNotFound
 	}
 	user.IsActive = active
 	return user, s.repo.Update(ctx, user)
