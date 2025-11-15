@@ -19,7 +19,7 @@ type PullRequestService struct {
 
 func (p *PullRequestService) GetReview(ctx context.Context, id string) ([]*models.PullRequest, error) {
 	if _,err := p.user.GetUserById(ctx, id); err != nil {
-		return nil, service.ErrUserNotFound
+		return nil, service.ErrNotFound
 	}
 	return p.pr.GetPullRequestsByReviewerId(ctx, id)
 }
@@ -47,7 +47,7 @@ func selectTwoReviewers(members []models.User, authorId string) []string {
 func (p *PullRequestService) Create(ctx context.Context, prId string, authorId string, prName string) (*models.PullRequest, error) {
 	user, err := p.user.GetUserById(ctx, authorId)
 	if err != nil {
-		return nil, service.ErrUserNotFound
+		return nil, service.ErrNotFound
 	}
 
 	exists, err := p.pr.ExistsByName(ctx, authorId, prName)
@@ -78,6 +78,27 @@ func (p *PullRequestService) Create(ctx context.Context, prId string, authorId s
 	}
 
 	return pr, nil
+}
 
+func (p *PullRequestService) Merge(ctx context.Context, prId string) (*models.PullRequest, error) {
+	pr, err := p.pr.GetByID(ctx, prId)
+	if err != nil {
+		return nil, service.ErrNotFound
+	}
 
+	if pr.Status == "MERGED" {
+		return pr, nil
+	}
+
+	pr.Status = "MERGED"
+	mergedTime := time.Now().UTC()
+	pr.MergedAt = &mergedTime
+
+	if err := p.pr.Update(ctx, pr); err != nil {
+		return nil, err
+	}
+
+	return pr,nil
+
+	
 }
