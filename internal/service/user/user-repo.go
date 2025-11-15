@@ -7,4 +7,5 @@ import (
 type UserRepository interface {
 	GetUserById(ctx context.Context, id string) (*models.User, error)
 	Update(ctx context.Context, u *models.User) error
+	CreateUsers(ctx context.Context, users []models.User) error
 }
