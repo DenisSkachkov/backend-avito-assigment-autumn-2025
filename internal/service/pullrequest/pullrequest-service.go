@@ -100,5 +100,77 @@ func (p *PullRequestService) Merge(ctx context.Context, prId string) (*models.Pu
 
 	return pr,nil
 
+
+}
+
+func (p *PullRequestService) ReassignReviewer(ctx context.Context, prId, oldReviewerId string) (*models.PullRequest, string, error) {
+	pr, err := p.pr.GetByID(ctx, prId) 
+	if err != nil {
+		return nil, "", service.ErrNotFound
+	}
 	
+	if pr.Status == "MERGED" {
+		return nil, "", service.ErrPullRequestMerged
+	}
+
+	idx := -1
+	for k, v := range pr.AssignedReviewers {
+		if v == oldReviewerId {
+			idx = k
+			break
+		}
+	}
+
+	if idx == -1{
+		return nil, "", service.ErrNotAssigned
+	}
+
+	if _, err := p.user.GetUserById(ctx, oldReviewerId);err != nil {
+		return nil, "", service.ErrNotFound
+	}
+
+	team, err := p.team.GetTeamByUserId(ctx, oldReviewerId)
+	if err != nil {
+		return nil, "", service.ErrNotFound
+	}
+
+	candidateID := ""
+    for _, u := range team.Members {
+        if !u.IsActive {
+            continue
+        }
+        if u.Id == pr.AuthorId {
+            continue
+        }
+        if u.Id == oldReviewerId {
+            continue
+        }
+
+        alreadyAssigned := false
+        for _, r := range pr.AssignedReviewers {
+            if r == u.Id {
+                alreadyAssigned = true
+                break
+            }
+        }
+        if alreadyAssigned {
+            continue
+        }
+
+        candidateID = u.Id
+        break
+    }
+
+    if candidateID == "" {
+        return nil, "", service.ErrNoCandidate
+    }
+
+    pr.AssignedReviewers[idx] = candidateID
+
+    if err := p.pr.Update(ctx, pr); err != nil {
+        return nil, "", err
+    }
+
+    return pr, candidateID, nil
+
 }
