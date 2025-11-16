@@ -11,6 +11,10 @@ type UserService struct {
 	repo UserRepository
 }
 
+func NewUserService(repo UserRepository) *UserService{
+	return &UserService{repo: repo}
+}
+
 func (s *UserService) SetActive(ctx context.Context, id string, active bool) (*models.User, error) {
 	user, err := s.repo.GetUserById(ctx, id)
 	if err != nil {
