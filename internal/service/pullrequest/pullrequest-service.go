@@ -17,6 +17,10 @@ type PullRequestService struct {
 	team team.TeamRepository
 }
 
+func NewPullRequestService(user user.UserRepository, pr PullRequestRepository, team team.TeamRepository) *PullRequestService {
+	return &PullRequestService{user: user,pr: pr,team: team}
+}
+
 func (p *PullRequestService) GetReview(ctx context.Context, id string) ([]*models.PullRequest, error) {
 	if _,err := p.user.GetUserById(ctx, id); err != nil {
 		return nil, service.ErrNotFound
