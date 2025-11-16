@@ -10,3 +10,7 @@ type ReassignReviewerDTO struct {
     PullRequestID string `json:"pull_request_id"`
     OldUserID     string `json:"old_user_id"`
 }
+
+type MergePRDTO struct {
+	PullRequestID   string `json:"pull_request_id"`
+}
