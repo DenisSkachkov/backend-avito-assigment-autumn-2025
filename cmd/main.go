@@ -13,7 +13,9 @@ import (
 	"github.com/DenisSkachkov/backend-avito-assigment-autumn-2025/internal/service/team"
 	"github.com/DenisSkachkov/backend-avito-assigment-autumn-2025/internal/service/user"
 	"github.com/gorilla/mux"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
+
 )
 
 func main() {
@@ -41,7 +43,7 @@ func main() {
 	r := mux.NewRouter()
 
 	handlers.NewPullRequestHandler(*prService).RegisterRoutes(r)
-	handlers.NewTeamHandler(*teamService).RegisterRoutes(r)
+	handlers.NewTeamHandler(teamService).RegisterRoutes(r)
 	handlers.NewUserHandler(*userService, *prService).RegisterRoutes(r)
 
 	server := http.New(r, "8080")
@@ -55,8 +57,6 @@ func main() {
 	stop := make(chan os.Signal, 1)
     <-stop
 
-    ctxTimeout, cancel := context.WithTimeout(ctx, 5* time.Second)
-    defer cancel()
-
+    ctxTimeout, _ := context.WithTimeout(ctx, 5* time.Second)
     server.Stop(ctxTimeout)
 }

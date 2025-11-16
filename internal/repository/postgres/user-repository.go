@@ -20,7 +20,12 @@ func NewUserRepo(db *sqlx.DB) user.UserRepository {
 
 func (r *userRepo) GetUserById(ctx context.Context, id string) (*models.User, error) {
     var u models.User
-    err := r.db.GetContext(ctx, &u, `SELECT user_id AS id, username, is_active FROM users WHERE user_id = $1`, id)
+    err := r.db.GetContext(ctx, &u, `
+        SELECT u.user_id, u.username, u.is_active, tm.team_name
+        FROM users u
+        LEFT JOIN team_members tm ON u.user_id = tm.user_id
+        WHERE u.user_id = $1
+    `, id)
     if err != nil {
         if err == sql.ErrNoRows {
             return nil, sql.ErrNoRows

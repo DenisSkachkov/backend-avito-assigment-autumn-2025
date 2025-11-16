@@ -8,5 +8,5 @@ type PullRequest struct {
 	AuthorId          string   `json:"author_id"`
 	Status            string   `json:"status"`
 	AssignedReviewers []string `json:"assigned_reviewers"`
-	MergedAt          *time.Time `json:"mergedAt"`
+	MergedAt          *time.Time `json:"mergedAt,omitempty"`
 }

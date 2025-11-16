@@ -10,4 +10,5 @@ type TeamRepository interface {
 	GetTeamByUserId(ctx context.Context, userId string) (*models.Team, error)
 	GetTeamByName(ctx context.Context, name string) (*models.Team, error)
 	CreateTeam(ctx context.Context, t *models.Team) error
+	TeamExists(ctx context.Context, name string) (bool, error)
 }

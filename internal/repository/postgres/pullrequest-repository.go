@@ -42,7 +42,7 @@ func (r *prRepo) GetPullRequestsByReviewerId(ctx context.Context, reviewerID str
             t := mergedAt.Time
             pr.MergedAt = &t
         }
-        // получить reviewers
+
         revs, err := r.GetReviewersForPR(ctx, pr.PullRequestId)
         if err != nil {
             return nil, err
@@ -111,7 +111,6 @@ func (r *prRepo) Create(ctx context.Context, pr *models.PullRequest) error {
         return err
     }
 
-    // assign reviewers
     if len(pr.AssignedReviewers) > 0 {
         stmt, err := tx.PrepareContext(ctx, `INSERT INTO pr_reviewers (pull_request_id, reviewer_id) VALUES ($1, $2)`)
         if err != nil {
@@ -153,8 +152,6 @@ func (r *prRepo) Update(ctx context.Context, pr *models.PullRequest) error {
         tx.Rollback()
         return err
     }
-
-    // Обновляем список ревьюверов: проще всего — удалить старые и вставить новые
     if _, err = tx.ExecContext(ctx, `DELETE FROM pr_reviewers WHERE pull_request_id = $1`, pr.PullRequestId); err != nil {
         tx.Rollback()
         return err

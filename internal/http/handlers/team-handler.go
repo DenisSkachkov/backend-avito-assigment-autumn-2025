@@ -37,7 +37,7 @@ func (h *TeamHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"error": map[string]string{
-					"code":    "TEAM_EXISTS",
+					"code":    service.ErrTeamExists.Error(),
 					"message": "team_name already exists",
 				},
 			})

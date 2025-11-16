@@ -2,6 +2,9 @@ package team
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+
 	"github.com/DenisSkachkov/backend-avito-assigment-autumn-2025/internal/models"
 	"github.com/DenisSkachkov/backend-avito-assigment-autumn-2025/internal/service"
 	"github.com/DenisSkachkov/backend-avito-assigment-autumn-2025/internal/service/user"
@@ -15,33 +18,31 @@ type TeamService struct {
 func NewTeamService(teamRepo TeamRepository, userRepo user.UserRepository) *TeamService {
 	return &TeamService{teamrepo: teamRepo, userrepo: userRepo}
 }
+
+
  
-func (t *TeamService) CreateTeam(ctx context.Context, team *models.Team) (*models.Team, error) {
-	if _,err := t.teamrepo.GetTeamByName(ctx, team.Name); err != nil {
-		return nil, service.ErrTeamExists
-	}
-
-	if len(team.Members) > 0 {
-		if err := t.userrepo.CreateUsers(ctx, team.Members); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := t.teamrepo.CreateTeam(ctx, team); err != nil {
-		return nil, err
-	}
-
-	return team, nil
-}
-
-func (t *TeamService) GetTeam(ctx context.Context, name string) (*models.Team, error) {
-    team, err := t.teamrepo.GetTeamByName(ctx, name)
+func (s *TeamService) CreateTeam(ctx context.Context, t *models.Team) (*models.Team, error) {
+    exists, err := s.teamrepo.TeamExists(ctx, t.Name)
     if err != nil {
         return nil, err
     }
-    if team == nil {
-        return nil, service.ErrNotFound
+    if exists {
+        return nil, service.ErrTeamExists
     }
 
-    return team, nil
+    if err := s.teamrepo.CreateTeam(ctx, t); err != nil {
+        return nil, err
+    }
+    return t, nil
+}
+
+func (s *TeamService) GetTeam(ctx context.Context, name string) (*models.Team, error) {
+	tm, err := s.teamrepo.GetTeamByName(ctx, name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, service.ErrNotFound
+		}
+		return nil, err
+	}
+	return tm, nil
 }

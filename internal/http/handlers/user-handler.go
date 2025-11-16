@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+
 	"github.com/DenisSkachkov/backend-avito-assigment-autumn-2025/internal/dto"
+	"github.com/DenisSkachkov/backend-avito-assigment-autumn-2025/internal/service"
 	"github.com/DenisSkachkov/backend-avito-assigment-autumn-2025/internal/service/pullrequest"
 	"github.com/DenisSkachkov/backend-avito-assigment-autumn-2025/internal/service/user"
 	"github.com/gorilla/mux"
@@ -33,8 +36,16 @@ func (h *UserHandler) SetIsActive(w http.ResponseWriter, r *http.Request) {
 
     user, err := h.userService.SetActive(r.Context(), body.UserID, body.IsActive)
     if err != nil {
-        http.Error(w, err.Error(), http.StatusNotFound)
-        return
+        if errors.Is(err, service.ErrNotFound) {
+            w.WriteHeader(http.StatusNotFound)
+            json.NewEncoder(w).Encode(map[string]interface{}{
+                "error": map[string]string{
+                    "code":    service.ErrNotFound.Error(),
+                    "message": "resource not found",
+                },
+            })
+            return
+        }
     }
 
     json.NewEncoder(w).Encode(map[string]interface{}{
