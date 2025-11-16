@@ -12,6 +12,10 @@ type TeamService struct {
 	userrepo user.UserRepository
 }
 
+func NewTeamService(teamRepo TeamRepository, userRepo user.UserRepository) *TeamService {
+	return &TeamService{teamrepo: teamRepo, userrepo: userRepo}
+}
+ 
 func (t *TeamService) CreateTeam(ctx context.Context, team *models.Team) (*models.Team, error) {
 	if _,err := t.teamrepo.GetTeamByName(ctx, team.Name); err != nil {
 		return nil, service.ErrTeamExists
